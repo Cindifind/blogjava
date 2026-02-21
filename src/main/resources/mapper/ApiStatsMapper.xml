@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.ApiStatsMapper">
+
+    <resultMap id="ApiStatsMap" type="com.example.demo.model.ApiStats">
+        <result column="url" property="url"/>
+        <result column="count" property="count"/>
+        <result column="description" property="description"/>
+        <result column="java" property="java"/>
+        <result column="python" property="python"/>
+        <result column="javascript" property="javascript"/>
+    </resultMap>
+
+    <select id="getApiList" resultMap="ApiStatsMap">
+        select * from api_stats where url in
+        <foreach collection="apiNameList" item="apiName" open="(" separator="," close=")">
+            #{apiName}
+        </foreach>
+    </select>
+
+</mapper>
