@@ -1,9 +1,12 @@
 package com.example.demo.controller;
 
+import com.example.demo.auth.mapper.UserInfoMapper;
+import com.example.demo.model.UserMusicList;
 import com.example.demo.music.ModelList;
 import com.example.demo.music.MusicInfo;
 import com.example.demo.music.Search;
 import com.example.demo.server.ApiUrlServer;
+import com.example.demo.server.UserMusicServer;
 import jakarta.servlet.http.HttpServletRequest;
 import org.example.text.client.Client;
 import org.json.JSONObject;
@@ -19,21 +22,27 @@ import java.util.Map;
 public class UserMusicApiController {
     @Autowired
     private ApiUrlServer apiUrlServer;
+    @Autowired
+    private UserMusicServer userMusicServer;
+    @Autowired
+    private UserInfoMapper userInfoMapper;
+
     // 获取音乐URL
     @Client(address = "/user/musicUrl", name = "musicUrl")
     @GetMapping("/user/musicUrl")
-    public ResponseEntity<Map<String, Object>> getMuscUrl(@RequestParam String id, @RequestParam String level ,HttpServletRequest  request){
+    public ResponseEntity<Map<String, Object>> getMuscUrl(@RequestParam String id, @RequestParam String level, HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
-        response.put("url", Search.getMusicUrl(id,level));
+        response.put("url", Search.getMusicUrl(id, level));
         response.put("code", 200);
         response.put("message", "获取音乐URL成功");
         apiUrlServer.UpDataaApiState(request);
         return ResponseEntity.ok(response);
     }
+
     // 获取音乐信息
     @Client(address = "/user/musicInfo", name = "muscInfo")
     @GetMapping("/user/musicInfo")
-    public ResponseEntity<Map<String, Object>> getMuscInfo(@RequestParam String id, HttpServletRequest  request){
+    public ResponseEntity<Map<String, Object>> getMuscInfo(@RequestParam String id, HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
         MusicInfo musicInfo = new MusicInfo();
         JSONObject jsonObject = new JSONObject(musicInfo.musicDetail(id));
@@ -49,10 +58,11 @@ public class UserMusicApiController {
         apiUrlServer.UpDataaApiState(request);
         return ResponseEntity.ok(response);
     }
+
     // 获取音乐歌词
     @Client(address = "/user/musicLyric", name = "musicLyric")
     @GetMapping("/user/musicLyric")
-    public ResponseEntity<Map<String, Object>> getMusicLyric(@RequestParam String id, HttpServletRequest  request){
+    public ResponseEntity<Map<String, Object>> getMusicLyric(@RequestParam String id, HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
         String lyric = Search.getLyric(id);
         response.put("code", 200);
@@ -61,10 +71,11 @@ public class UserMusicApiController {
         apiUrlServer.UpDataaApiState(request);
         return ResponseEntity.ok(response);
     }
+
     // 获取歌单
     @Client(address = "/user/musicList", name = "musicList")
     @GetMapping("/user/musicList")
-    public ResponseEntity<Map<String, Object>> getMusicList(@RequestParam String id, HttpServletRequest  request){
+    public ResponseEntity<Map<String, Object>> getMusicList(@RequestParam String id, HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
         response.put("code", 200);
         response.put("message", "获取歌单成功");
@@ -72,20 +83,22 @@ public class UserMusicApiController {
         apiUrlServer.UpDataaApiState(request);
         return ResponseEntity.ok(response);
     }
+
     // 搜索歌曲
     @Client(address = "/user/musicSearch", name = "userMusicSearch")
     @GetMapping("/user/musicSearch")
-    public ResponseEntity<Map<String, Object>> getMusicSearch(@RequestParam String name,@RequestParam int l,@RequestParam int t, HttpServletRequest  request){
+    public ResponseEntity<Map<String, Object>> getMusicSearch(@RequestParam String name, @RequestParam int l, @RequestParam int t, HttpServletRequest request) {
         Map<String, Object> response = Search.SearchMp3(name, l, t).toMap();
-        response.put("page",t);
-        response.put("size",l);
+        response.put("page", t);
+        response.put("size", l);
         apiUrlServer.UpDataaApiState(request);
         return ResponseEntity.ok(response);
     }
+
     // 获取歌单列表信息
     @Client(address = "/user/musicListInfo", name = "musicListInfo")
     @PostMapping("/user/musicListInfo")
-    public ResponseEntity<Map<String, Object>> getMusicListInfo(@RequestBody List<String> id, HttpServletRequest  request){
+    public ResponseEntity<Map<String, Object>> getMusicListInfo(@RequestBody List<String> id, HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
         response.put("code", 200);
         response.put("message", "获取歌单信息成功");
@@ -94,4 +107,53 @@ public class UserMusicApiController {
         return ResponseEntity.ok(response);
     }
 
+    // 获取用户歌单
+    @Client(address = "/user/userMusicList", name = "userMusicList")
+    @GetMapping("/user/userMusicList")
+    public ResponseEntity<Map<String, Object>> getUserMusicList(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        token = token == null ? request.getHeader("token") : token;
+        token = token.replace("Bearer ", "");
+        String email = userInfoMapper.getEmailByToken(token);
+        Map<String, Object> response = new HashMap<>();
+        JSONObject jsonObject = userMusicServer.selectMusicList(email);
+        response.put("code", jsonObject.getInt("code"));
+        response.put("message", "获取用户歌单成功");
+        response.put("list", jsonObject.getString("musicList"));
+        apiUrlServer.UpDataaApiState(request);
+        return ResponseEntity.ok(response);
+    }
+
+    // 更新或插入用户歌单
+    @Client(address = "/user/updateUserMusicList", name = "updateUserMusicList")
+    @PostMapping("/user/updateUserMusicList")
+    public ResponseEntity<Map<String, Object>> updateUserMusicList(@RequestBody List<String> musicId, HttpServletRequest request) {
+
+        UserMusicList userMusicList = getUserMusicList(musicId, request);
+        Map<String, Object> response = userMusicServer.insertMusicListAndUpdate(userMusicList).toMap();
+        apiUrlServer.UpDataaApiState(request);
+        return ResponseEntity.ok(response);
+    }
+
+
+    // 删除收藏歌单
+    @Client(address = "/user/deleteUserMusicList", name = "deleteUserMusicList")
+    @PostMapping("/user/deleteUserMusicList")
+    public ResponseEntity<Map<String, Object>> deleteUserMusicList(@RequestBody List<String> musicId, HttpServletRequest request) {
+        UserMusicList userMusicList = getUserMusicList(musicId, request);
+        Map<String, Object> response = userMusicServer.deleteMusicList(userMusicList).toMap();
+        apiUrlServer.UpDataaApiState(request);
+        return ResponseEntity.ok(response);
+    }
+
+    private UserMusicList getUserMusicList(@RequestBody List<String> musicId, HttpServletRequest request) {
+        UserMusicList userMusicList = new UserMusicList();
+        String token = request.getHeader("Authorization");
+        token = token == null ? request.getHeader("token") : token;
+        token = token.replace("Bearer ", "");
+        String email = userInfoMapper.getEmailByToken(token);
+        userMusicList.setEmail(email);
+        userMusicList.setMusicList(musicId.toString());
+        return userMusicList;
+    }
 }
