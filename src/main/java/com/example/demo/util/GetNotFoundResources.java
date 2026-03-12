@@ -15,7 +15,7 @@ public class GetNotFoundResources {
     public void getNotFoundImages(String path) {
 //        HttpResponse<File> response = Unirest.get("http://luren.online:2345/prosy/image?filename="+path)
         //使用这个获取的文件存入路径this.path+path
-        HttpResponse<File> response = Unirest.get("http://luren.online:2345/proxy/image?filename=" + path)
+        HttpResponse<File> response = Unirest.get("https://luren.online:2345/proxy/image?filename=" + path)
                 .asFile(path);
         //将获取的文件保存到本地
         File file = response.getBody();
@@ -28,7 +28,7 @@ public class GetNotFoundResources {
     public void getNotFoundMd(String path) {
 //        HttpResponse<File> response = Unirest.get("http://luren.online:2345/prosy/md?filename="+path)
         //使用这个获取的文件存入路径this.path+path
-        HttpResponse<File> response = Unirest.get("http://luren.online:2345/proxy/md?filename=" + path)
+        HttpResponse<File> response = Unirest.get("https://luren.online:2345/proxy/md?filename=" + path)
                 .asFile(path);
         //将获取的文件保存到本地
         File file = response.getBody();
