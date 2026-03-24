@@ -2,6 +2,7 @@ package com.example.demo.auth.server;
 
 import com.example.demo.auth.mapper.UserInfoMapper;
 import com.example.demo.auth.model.UserInfo;
+import com.example.demo.auth.util.Argon2Util;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,9 @@ public class RegisterServer {
         try {
             // 验证成功，执行注册逻辑
             userInfo.setIsEnable(userInfo.getGrade() == 1);
+            String salt = Argon2Util.generateRandomSalt();
+            userInfo.setSalt(salt);
+            userInfo.setToken(Argon2Util.argon2Hash(userInfo.getToken(), salt));
             userInfoMapper.insertUserInfo(userInfo);
 
             Map<String, Object> response = new HashMap<>();

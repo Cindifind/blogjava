@@ -7,17 +7,19 @@ public class UserInfo {
     private boolean isEnable;
     private String imgUrl;
     private String name;
+    private String salt;
 
     public UserInfo() {
     }
 
-    public UserInfo( String email, String token, int grade, boolean isEnable, String imgUrl, String name) {
+    public UserInfo(String email, String token, int grade, boolean isEnable, String imgUrl, String name, String salt) {
         this.email = email;
         this.token = token;
         this.grade = grade;
         this.isEnable = isEnable;
         this.imgUrl = imgUrl;
         this.name = name;
+        this.salt = salt;
     }
 
     public String getEmail() {
@@ -68,4 +70,11 @@ public class UserInfo {
         this.name = name;
     }
 
+    public String getSalt() {
+        return salt;
+    }
+
+    public void setSalt(String salt) {
+        this.salt = salt;
+    }
 }

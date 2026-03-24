@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.auth.mapper.UserInfoMapper;
 import com.example.demo.auth.server.VerificationCodeService;
+import com.example.demo.auth.util.Argon2Util;
 import com.example.demo.auth.util.GetSh256;
 import jakarta.servlet.http.HttpServletRequest;
 import org.example.text.client.Client;
@@ -53,7 +54,8 @@ public class ChangePasswordController {
 
         // 验证成功，更新密码
         try {
-            userInfoMapper.updateUserInfoPassword(email, GetSh256.getSha256Hash(email + password));
+            String salt = Argon2Util.generateRandomSalt();
+            userInfoMapper.updateUserInfoPassword(email, Argon2Util.argon2Hash(email+password,salt),salt);
             Map<String, Object> response = new HashMap<>();
             response.put("code", 200);
             response.put("message", "密码修改成功");

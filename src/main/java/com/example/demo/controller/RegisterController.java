@@ -43,11 +43,10 @@ public class RegisterController {
             }
 
             // 创建用户信息
-            String beforeToken = email + password;
-            String afterToken = GetSh256.getSha256Hash(beforeToken);
+            String token = email + password;
             UserInfo userInfo = new UserInfo();
             userInfo.setEmail(email);
-            userInfo.setToken(afterToken);
+            userInfo.setToken(token);
             userInfo.setGrade(grade);
 
             // 调用注册服务
