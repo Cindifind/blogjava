@@ -21,25 +21,30 @@ public class CommentService {
      */
     public boolean addComment(Comment comment) {
 
-        // 如果timestamp为空，使用当前时间戳
-        if (comment.getTimestamp() == null) {
-            comment.setTimestamp(System.currentTimeMillis());
-        }
+
+        comment.setTimestamp(System.currentTimeMillis());
+        comment.setReply(0);
+        comment.setRootId(null);
+        comment.setParentId(null);
         return commentMapper.insertComment(comment);
     }
 
     public boolean addReply(Comment comment) {
         // 如果timestamp为空，使用当前时间戳
-        if (comment.getTimestamp() == null) {
-            comment.setTimestamp(System.currentTimeMillis());
-        }
+        comment.setTimestamp(System.currentTimeMillis());
+        comment.setReply(0);
         Long parentId = comment.getParentId();
-        Long articleId = comment.getArticleId();
         Comment commentById = commentMapper.findCommentById(parentId);
+        Long rootId = commentById.getRootId();
+        if (rootId == null){
+            comment.setRootId(parentId);
+        }else {
+            comment.setRootId(rootId);
+        }
         return commentMapper.addReply(comment);
     }
 
-    public void updateReplyCount(Long timestamp,int count) {
+    public void updateReplyCount(Long timestamp, int count) {
         commentMapper.updateReplyCount(timestamp, count);
     }
 
@@ -76,10 +81,10 @@ public class CommentService {
         List<Long> parentIds = commentMapper.findParentId(timestamp);
         Comment comment = commentMapper.findCommentById(timestamp);
         Long parentId = comment.getParentId();
-        if (parentId != null) commentMapper.updateReplyCount(parentId, -parentIds.size()-1);
+        if (parentId != null) commentMapper.updateReplyCount(parentId, -parentIds.size() - 1);
         if (!parentIds.isEmpty()) commentMapper.deleteComments(parentIds);
         commentMapper.deleteComment(timestamp);
-        return parentIds.size()+1;
+        return parentIds.size() + 1;
     }
 
     /**

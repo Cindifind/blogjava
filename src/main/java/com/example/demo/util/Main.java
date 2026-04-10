@@ -1,34 +1,41 @@
 package com.example.demo.util;
 
-import kong.unirest.HttpResponse;
-import kong.unirest.Unirest;
-import org.json.JSONObject;
-
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.StringTokenizer;
 
 public class Main {
-    public static void main(String[] args) {
-        String url = "http://localhost:8080/register?code=123456";
-        JSONObject requestBody = new JSONObject();
-        requestBody.put("userName", "user2");
-        requestBody.put("password", "123456");
-        requestBody.put("sex", "男");
-        requestBody.put("workUnit", "springBoot");
-//        requestBody.put("phone", "13800000000");
-        String url1 = "http://localhost:8080/login";
-        JSONObject requestBody1 = new JSONObject();
-        requestBody1.put("userName", "user");
-        requestBody1.put("password", "123456");
-        String url2 = "http://localhost:8080/sendCode";
-        HttpResponse<String> postResponse = Unirest.post(url1)
-                .header("Content-Type", "application/json")
-                .body(requestBody1.toString())
-                .asString();
-//        HttpResponse<String> getResponse = Unirest.get(url2)
-//                .header("Content-Type", "application/json")
-//                .asString();
-//        System.out.println(getResponse.getBody());
-        System.out.println(postResponse.getBody());
+    public static void main(String[] args) throws Exception {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        StringTokenizer st = new StringTokenizer(br.readLine());
 
+        int n = Integer.parseInt(st.nextToken());
+        int C = Integer.parseInt(st.nextToken());
+        int len = (int) (n / 0.75) + 1;
+        Map<Integer, Integer> map = new HashMap<>(len);
+
+        st = new StringTokenizer(br.readLine());
+        for (int i = 0; i < n; i++) {
+            int num = Integer.parseInt(st.nextToken());
+            map.put(num, map.getOrDefault(num, 0) + 1);
+        }
+
+        long result = 0;
+        if (C == 0) {
+            for (int count : map.values()) {
+                result += (long) count * (count - 1);
+            }
+        } else {
+            for (Map.Entry<Integer, Integer> entry : map.entrySet()) {
+                Integer bCount = map.get(entry.getKey() - C);
+                if (bCount != null) {
+                    result += (long) entry.getValue() * bCount;
+                }
+            }
+        }
+
+        System.out.println(result);
     }
 }

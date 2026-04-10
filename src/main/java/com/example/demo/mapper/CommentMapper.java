@@ -17,6 +17,7 @@ public interface CommentMapper {
     @Select("SELECT * FROM comments WHERE timestamp = #{timestamp}")
     @Result(property = "articleId", column = "article_id")
     @Result(property = "parentId", column = "parent_id")
+    @Result(property = "rootId", column = "root_id")
     Comment findCommentById(Long timestamp);
 
     @Delete("DELETE FROM comments WHERE timestamp = #{timestamp}")
@@ -31,10 +32,11 @@ public interface CommentMapper {
     @Select("SELECT COUNT(*) FROM comments")
     int getTotalCommentCount();
     //添加回复
-    @Insert("INSERT INTO comments(timestamp,article_id, email, content, parent_id) VALUES (#{timestamp},#{articleId}, #{email}, #{content}, #{parentId})")
+    @Insert("INSERT INTO comments(timestamp,article_id, email, content, parent_id,root_id) VALUES (#{timestamp},#{articleId}, #{email}, #{content}, #{parentId},#{rootId})")
     boolean addReply(Comment comment);
     //查询回复
-    @Select("SELECT * FROM comments WHERE parent_id = #{timestamp}")
+    //临时更改
+    @Select("SELECT * FROM comments WHERE root_id = #{timestamp}")
     List<Comment> findReplyByParentId(Long timestamp);
     //增加父评论回复数量
     @Update("UPDATE comments SET reply = reply + #{count} WHERE timestamp = #{timestamp}")

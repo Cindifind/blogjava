@@ -64,7 +64,7 @@ public class CommentController {
         try {
             if (commentService.addReply(comment)) {
                 articleResourcePathMapper.commentArticle(comment.getArticleId());
-                commentService.updateReplyCount(comment.getParentId(),1);
+                commentService.updateReplyCount(comment.getRootId(),1);
                 result.put("code", 200);
                 result.put("message", "回复添加成功");
                 result.put("data", comment);

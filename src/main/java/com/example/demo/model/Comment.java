@@ -9,13 +9,13 @@ public class Comment {
     private String email;
     private String content;
     private Long parentId;
-    private int reply;
-    private String rootId;
+    private Integer reply;
+    private Long rootId;
 
     public Comment() {
     }
 
-    public Comment(Long timestamp, Long articleId, String author, String email, String content, Long parentId, int reply, String rootId) {
+    public Comment(Long timestamp, Long articleId, String author, String email, String content, Long parentId, Integer reply, Long rootId) {
         this.timestamp = timestamp;
         this.articleId = articleId;
         this.author = author;
@@ -142,7 +142,7 @@ public class Comment {
      * 获取
      * @return rootId
      */
-    public String getRootId() {
+    public Long getRootId() {
         return rootId;
     }
 
@@ -150,7 +150,7 @@ public class Comment {
      * 设置
      * @param rootId
      */
-    public void setRootId(String rootId) {
+    public void setRootId(Long rootId) {
         this.rootId = rootId;
     }
 

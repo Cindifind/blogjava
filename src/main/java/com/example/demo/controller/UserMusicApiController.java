@@ -111,10 +111,7 @@ public class UserMusicApiController {
     @Client(address = "/user/userMusicList", name = "userMusicList")
     @GetMapping("/user/userMusicList")
     public ResponseEntity<Map<String, Object>> getUserMusicList(HttpServletRequest request) {
-        String token = request.getHeader("Authorization");
-        token = token == null ? request.getHeader("token") : token;
-        token = token.replace("Bearer ", "");
-        String email = userInfoMapper.getEmailByToken(token);
+        String email = userInfoMapper.getEmailByToken(getToken(request));
         Map<String, Object> response = new HashMap<>();
         JSONObject jsonObject = userMusicServer.selectMusicList(email);
         response.put("code", jsonObject.getInt("code"));
@@ -148,12 +145,15 @@ public class UserMusicApiController {
 
     private UserMusicList getUserMusicList(@RequestBody List<String> musicId, HttpServletRequest request) {
         UserMusicList userMusicList = new UserMusicList();
-        String token = request.getHeader("Authorization");
-        token = token == null ? request.getHeader("token") : token;
-        token = token.replace("Bearer ", "");
-        String email = userInfoMapper.getEmailByToken(token);
+        String email = userInfoMapper.getEmailByToken(getToken(request));
         userMusicList.setEmail(email);
         userMusicList.setMusicList(musicId.toString());
         return userMusicList;
+    }
+    private static String getToken(HttpServletRequest request){
+        String token = request.getHeader("Authorization");
+        token = token == null ? request.getHeader("token") : token;
+        token = token.replace("Bearer ", "");
+        return token;
     }
 }
