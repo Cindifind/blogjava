@@ -1,21 +1,26 @@
 package com.example.demo.controller;
 
 import com.example.demo.mapper.WebInfoMapper;
+import com.example.demo.model.Weather;
 import com.example.demo.server.ApiUrlServer;
 import com.example.demo.util.IPConfig;
-import com.example.demo.util.Weather;
+import com.example.demo.util.WeatherUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.example.text.client.Client;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 public class WebInfoController {
@@ -49,7 +54,15 @@ public class WebInfoController {
             }
             log.info("获取天气信息，传入ip: {}", ip);
         }
-        return getStringObjectMap(ip, request);
+        Map<String, Object> weather = new HashMap<>();
+        try {
+            weather = getStringObjectMap(ip, request);
+            weather.put("message","获取信息成功");
+        }catch (Exception e){
+            weather.put("status","500");
+            weather.put("message","发生位置错误");
+        }
+        return weather;
     }
     @Client(address = "/info/getPageViews",name = "getPageViews")
     @RequestMapping("/info/getPageViews")
@@ -64,17 +77,30 @@ public class WebInfoController {
     }
 
     private Map<String, Object> getStringObjectMap(String ipApi,HttpServletRequest request) {
-        Map<String, Object> weather = new Weather().getWeather(ipApi);
-        if (weather == null) {
-            weather = new HashMap<>();
-            weather.put("status", "201");
-            weather.put("message", "当前网络为ipv6，仅可使用ipv4调用此接口" + ipApi);
-            apiUrlServer.UpDataaApiState(request);
-            return weather;
-        }
-        weather.put("ip", ipApi);
-        weather.put("status", "success");
-        weather.put("message", "获取天气信息成功");
+        Weather weatherByTX = new WeatherUtil().getWeatherByTX(ipApi);
+        Map<String, Object> weather = Arrays.stream(weatherByTX.getClass().getDeclaredFields())
+                .peek(field -> field.setAccessible(true))   // 私有字段可访问
+                .collect(Collectors.toMap(
+                        Field::getName,                     // key：字段名
+                        field -> {
+                            try {
+                                return field.get(weatherByTX); // value：字段值
+                            } catch (IllegalAccessException e) {
+                                return null;
+                            }
+                        }
+                ));
+//        Map<String, Object> weather = new WeatherUtil().getWeather(ipApi);
+//        if (weather == null) {
+//            weather = new HashMap<>();
+//            weather.put("status", "201");
+//            weather.put("message", "当前网络为ipv6，仅可使用ipv4调用此接口" + ipApi);
+//            apiUrlServer.UpDataaApiState(request);
+//            return weather;
+//        }
+//        weather.put("ip", ipApi);
+//        weather.put("status", "success");
+//        weather.put("message", "获取天气信息成功");
         apiUrlServer.UpDataaApiState(request);
         return weather;
     }
