@@ -26,21 +26,17 @@ public class WeatherUtil {
             return null;
         }
     }
-    public  Weather getWeatherByTX(String ipApi) {
+
+    public Weather getWeatherByTX(String ipApi) {
         Weather weather = new Weather();
-        HttpResponse<String> responseIp = Unirest.get("https://apis.map.qq.com/ws/location/v1/ip?ip="+ipApi+"&&key="+TX_KEY)
-                .header("Content-Type", "application/json")
-                .asString();
-        JSONObject resultByIp = new JSONObject(responseIp.getBody());
+        JSONObject resultByIp = getLocateByIp(ipApi);
         resultByIp = resultByIp.getJSONObject("result");
         weather.setIp(resultByIp.getString("ip"));
         resultByIp = resultByIp.getJSONObject("ad_info");
         weather.setCity(resultByIp.getString("city"));
         weather.setAdcode(resultByIp.getInt("adcode"));
         weather.setProvince(resultByIp.getString("province"));
-        HttpResponse<String> responseWeather = Unirest.get("https://apis.map.qq.com/ws/weather/v1/?adcode=310000&&key="+TX_KEY)
-                .header("Content-Type", "application/json")
-                .asString();
+        HttpResponse<String> responseWeather = Unirest.get("https://apis.map.qq.com/ws/weather/v1/?adcode=310000&&key=" + TX_KEY).header("Content-Type", "application/json").asString();
         JSONObject resultByWeather = new JSONObject(responseWeather.getBody());
         resultByWeather = resultByWeather.getJSONObject("result").getJSONArray("realtime").getJSONObject(0);
         weather.setReporttime(resultByWeather.getString("update_time"));
@@ -54,4 +50,8 @@ public class WeatherUtil {
         return weather;
     }
 
+    public JSONObject getLocateByIp(String ip) {
+        HttpResponse<String> responseIp = Unirest.get("https://apis.map.qq.com/ws/location/v1/ip?ip=" + ip + "&&key=" + TX_KEY).header("Content-Type", "application/json").asString();
+        return new JSONObject(responseIp.getBody());
+    }
 }
