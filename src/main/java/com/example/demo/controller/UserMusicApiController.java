@@ -1,12 +1,15 @@
 package com.example.demo.controller;
 
 import com.example.demo.auth.mapper.UserInfoMapper;
+import com.example.demo.model.MusicProto;
 import com.example.demo.model.UserMusicList;
 import com.example.demo.music.ModelList;
 import com.example.demo.music.MusicInfo;
 import com.example.demo.music.Search;
 import com.example.demo.server.ApiUrlServer;
 import com.example.demo.server.UserMusicServer;
+import com.example.demo.util.GzipBase64Util;
+import com.example.demo.util.ProtoReflectConverter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.example.text.client.Client;
 import org.json.JSONObject;
@@ -14,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -155,5 +159,25 @@ public class UserMusicApiController {
         token = token == null ? request.getHeader("token") : token;
         token = token.replace("Bearer ", "");
         return token;
+    }
+    // 获取歌单
+    @Client(address = "/user/musicListProto", name = "musicListProto")
+    @GetMapping("/user/musicListProto")
+    public ResponseEntity<Map<String, Object>> getMusicListProto(@RequestParam String id, HttpServletRequest request) throws IOException {
+        List<ModelList> modelLists = Search.SearchListInfos(id);
+        MusicProto.MusicInfoList musicInfoList = ProtoReflectConverter.pojoListToProtoList(
+                modelLists,
+                MusicProto.MusicInfoList.class,
+                MusicProto.MusicInfo.class,
+                "items"  // 明确告诉转换器用哪个字段
+        );
+        byte[] byteArray = musicInfoList.toByteArray();
+        String compressedBase64 = GzipBase64Util.compressToBase64(byteArray);
+        Map<String, Object> response = new HashMap<>();
+        response.put("code", 200);
+        response.put("message", "获取歌单成功");
+        response.put("list", compressedBase64);
+        apiUrlServer.UpDataaApiState(request);
+        return ResponseEntity.ok(response);
     }
 }

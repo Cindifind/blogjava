@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package article;
+
+option java_package = "com.example.demo.model"; // 根据实际项目调整
+option java_outer_classname = "ArticleProto";
+
+message ArticleResourcePath {
+  int64 timestamp = 1;      // 时间戳
+  string image = 2;         // 图片URL/路径
+  string md = 3;            // Markdown内容
+  string author = 4;        // 作者
+  string title = 5;         // 标题
+  string label = 6;          // 标签
+  string description = 7;    // 描述
+  string email = 8;          // 邮箱
+  int64 like = 9;           // 点赞数
+  int64 comment = 10;       // 评论数
+  int64 browse = 11;        // 浏览数
+}

@@ -31,7 +31,7 @@ public class Search {
                 ModelList modelList = new ModelList();
                 modelList.setId(id);
                 String detail = musicInfo.musicDetail(modelList.getId());
-                System.out.println(detail);
+//                System.out.println(detail);
                 //每一首歌的响应时间
                 JSONObject jsonObject = new JSONObject(detail);
                 modelList.setArtistsname(jsonObject.getString("artist"));

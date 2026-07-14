@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package music;
+
+option java_package = "com.example.demo.model";
+option java_outer_classname = "MusicProto";
+
+// 单条音乐信息
+message MusicInfo {
+  string id = 1;
+  string name = 2;
+  string artists_name = 3;   // 建议蛇形命名
+  string picurl = 4;
+  string music_duration = 5; // 若存毫秒，建议改为 int64
+}
+
+// ✅ 仅用于返回列表（无 total / page / page_size）
+message MusicInfoList {
+  repeated MusicInfo items = 1;
+}

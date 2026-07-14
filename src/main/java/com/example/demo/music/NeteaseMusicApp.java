@@ -136,7 +136,7 @@ public class NeteaseMusicApp {
             if (response.getStatus() != 200) {
                 throw new RuntimeException("HTTP请求失败: " + response.getStatus());
             }
-            System.out.println(response.getBody());
+//            System.out.println(response.getBody());
             return new JSONObject(response.getBody());
         }
 
@@ -529,7 +529,7 @@ public class NeteaseMusicApp {
                 }
 
                 String responseBody = response.getBody();
-                System.out.println("搜索结果: " + responseBody);
+//                System.out.println("搜索结果: " + responseBody);
                 // 解析响应并构建返回格式
                 JSONObject result = new JSONObject(responseBody);
                 if (result.has("result") && result.getJSONObject("result").has("songs")) {
