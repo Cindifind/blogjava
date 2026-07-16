@@ -15,10 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,9 +40,10 @@ public class LoginController {
         return ResponseEntity.ok(userInfoServer.getSalt(email, hash));
     }
     @Client(address = "/refresh", name = "refresh")
-    @GetMapping("/refresh")
-    public ResponseEntity<Map<String, Object>> refresh(@RequestParam String refreshToken) {
-        return ResponseEntity.ok(userInfoServer.refresh(refreshToken));
+    @PostMapping("/refresh")
+    public ResponseEntity<Map<String, Object>> refresh(@RequestBody String refreshToken) {
+        JSONObject jsonObject = new JSONObject(refreshToken);
+        return ResponseEntity.ok(userInfoServer.refresh(jsonObject.getString("refreshToken")));
     }
 
 }
