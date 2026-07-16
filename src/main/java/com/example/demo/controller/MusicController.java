@@ -104,7 +104,7 @@ public class MusicController {
             return musicList;
         }
         token = token.replace("Bearer ", "");
-        String email = userInfoMapper.getEmailByToken(token);
+        String email = userInfoMapper.getEmailByPassword(token);
         JSONObject jsonObject = userMusicServer.selectMusicList(email);
 
         if (!jsonObject.has("musicList")){

@@ -46,7 +46,7 @@ public class RegisterController {
             String token = email + password;
             UserInfo userInfo = new UserInfo();
             userInfo.setEmail(email);
-            userInfo.setToken(token);
+            userInfo.setPassword(token);
             userInfo.setGrade(grade);
 
             // 调用注册服务

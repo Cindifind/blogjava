@@ -12,6 +12,9 @@ public class Argon2Util {
     public static final String SALT="hdiFwfFEQS164";
 
     public static String argon2Hash(String src, String salt) {
+        return argon2Hash(src, salt, 32);
+    }
+    public static String argon2Hash(String src, String salt,int length) {
         try {
             byte[] password = src.getBytes(StandardCharsets.UTF_8);
             byte[] saltBytes = salt.getBytes(StandardCharsets.UTF_8);
@@ -26,7 +29,7 @@ public class Argon2Util {
             Argon2BytesGenerator generator = new Argon2BytesGenerator();
             generator.init(params);
 
-            byte[] hash = new byte[32];  // 32字节 = 256位
+            byte[] hash = new byte[length];  // 32字节 = 256位
             generator.generateBytes(password, hash);
 
             return Base64.getEncoder().encodeToString(hash);

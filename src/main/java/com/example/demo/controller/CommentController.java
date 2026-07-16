@@ -137,7 +137,7 @@ public class CommentController {
             //获取请求头中的
             //authorization Bearer eb962f1691be288098def8091251c58c8ca12ff342840e0759318250f7f6deb6
             token = token.replace("Bearer ", "");
-            String email = userInfoMapper.getEmailByToken(token);
+            String email = userInfoMapper.getEmailByPassword(token);
             Comment comment = commentService.getCommentById(timestamp);
             if (!email.equals(comment.getEmail())) {
                 result.put("code", 403);

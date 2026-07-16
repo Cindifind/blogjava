@@ -7,6 +7,7 @@ import com.example.demo.music.ModelList;
 import com.example.demo.music.MusicInfo;
 import com.example.demo.music.Search;
 import com.example.demo.server.ApiUrlServer;
+import com.example.demo.server.UserInfoServer;
 import com.example.demo.server.UserMusicServer;
 import com.example.demo.util.GzipBase64Util;
 import com.example.demo.util.ProtoReflectConverter;
@@ -30,11 +31,13 @@ public class UserMusicApiController {
     private UserMusicServer userMusicServer;
     @Autowired
     private UserInfoMapper userInfoMapper;
+    @Autowired
+    private UserInfoServer userInfoServer;
 
     // 获取音乐URL
     @Client(address = "/user/musicUrl", name = "musicUrl")
     @GetMapping("/user/musicUrl")
-    public ResponseEntity<Map<String, Object>> getMuscUrl(@RequestParam String id, @RequestParam String level, HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> getMusicUrl(@RequestParam String id, @RequestParam String level, HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
         response.put("url", Search.getMusicUrl(id, level));
         response.put("code", 200);
@@ -44,9 +47,9 @@ public class UserMusicApiController {
     }
 
     // 获取音乐信息
-    @Client(address = "/user/musicInfo", name = "muscInfo")
+    @Client(address = "/user/musicInfo", name = "musicInfo")
     @GetMapping("/user/musicInfo")
-    public ResponseEntity<Map<String, Object>> getMuscInfo(@RequestParam String id, HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> getMusicInfo(@RequestParam String id, HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
         MusicInfo musicInfo = new MusicInfo();
         JSONObject jsonObject = new JSONObject(musicInfo.musicDetail(id));
@@ -115,7 +118,7 @@ public class UserMusicApiController {
     @Client(address = "/user/userMusicList", name = "userMusicList")
     @GetMapping("/user/userMusicList")
     public ResponseEntity<Map<String, Object>> getUserMusicList(HttpServletRequest request) {
-        String email = userInfoMapper.getEmailByToken(getToken(request));
+        String email = userInfoMapper.getEmail(getEmailByToken(request));
         Map<String, Object> response = new HashMap<>();
         JSONObject jsonObject = userMusicServer.selectMusicList(email);
         response.put("code", jsonObject.getInt("code"));
@@ -147,18 +150,18 @@ public class UserMusicApiController {
         return ResponseEntity.ok(response);
     }
 
-    private UserMusicList getUserMusicList(@RequestBody List<String> musicId, HttpServletRequest request) {
+    private UserMusicList getUserMusicList(List<String> musicId, HttpServletRequest request) {
         UserMusicList userMusicList = new UserMusicList();
-        String email = userInfoMapper.getEmailByToken(getToken(request));
+        String email = getEmailByToken(request);
         userMusicList.setEmail(email);
         userMusicList.setMusicList(musicId.toString());
         return userMusicList;
     }
-    private static String getToken(HttpServletRequest request){
+    private String getEmailByToken(HttpServletRequest request){
         String token = request.getHeader("Authorization");
         token = token == null ? request.getHeader("token") : token;
         token = token.replace("Bearer ", "");
-        return token;
+        return userInfoServer.getEmailByAccessToken(token);
     }
     // 获取歌单
     @Client(address = "/user/musicListProto", name = "musicListProto")

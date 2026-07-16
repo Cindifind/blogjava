@@ -32,7 +32,7 @@ public class RegisterServer {
             userInfo.setIsEnable(userInfo.getGrade() == 1);
             String salt = Argon2Util.generateRandomSalt();
             userInfo.setSalt(salt);
-            userInfo.setToken(Argon2Util.argon2Hash(userInfo.getToken(), salt));
+            userInfo.setPassword(Argon2Util.argon2Hash(userInfo.getPassword(), salt));
             userInfoMapper.insertUserInfo(userInfo);
 
             Map<String, Object> response = new HashMap<>();
