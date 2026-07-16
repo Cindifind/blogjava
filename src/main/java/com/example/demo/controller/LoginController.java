@@ -42,5 +42,10 @@ public class LoginController {
     public ResponseEntity<Map<String, Object>> getSalt(@RequestParam String email, @RequestParam String hash) {
         return ResponseEntity.ok(userInfoServer.getSalt(email, hash));
     }
+    @Client(address = "/refresh", name = "refresh")
+    @GetMapping("/refresh")
+    public ResponseEntity<Map<String, Object>> refresh(@RequestParam String refreshToken) {
+        return ResponseEntity.ok(userInfoServer.refresh(refreshToken));
+    }
 
 }

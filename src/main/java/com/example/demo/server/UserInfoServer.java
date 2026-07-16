@@ -144,8 +144,7 @@ public class UserInfoServer {
         Map<String, Object> response = new HashMap<>();
 
         // 先通过refreshToken查询email
-        String refreshTokenMappingKey = "token:refresh:" + refreshToken;
-        String email = redisTemplate.opsForValue().get(refreshTokenMappingKey);
+        String email = getEmailByRefreshToken(refreshToken);
 
         if (email == null) {
             response.put("code", 401);
