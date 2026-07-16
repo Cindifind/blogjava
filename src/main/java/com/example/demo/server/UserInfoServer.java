@@ -103,9 +103,21 @@ public class UserInfoServer {
         String refreshTokenMappingKey = "token:refresh:" + refreshToken;
         String accessTokenMappingKey = "token:access:" + accessToken;
 
-        // 使用 Lua 脚本原子性地设置所有键值对
+        // 获取旧的token，以便删除旧的映射
+        String oldRefreshToken = redisTemplate.opsForValue().get(refreshTokenKey);
+        String oldAccessToken = redisTemplate.opsForValue().get(accessTokenKey);
+
+        // 使用 Lua 脚本原子性地设置所有键值对，并删除旧的映射
         String luaScript =
                 """
+                        -- 删除旧的token映射（如果存在）
+                        if ARGV[9] ~= '' then
+                            redis.call('DEL', 'token:refresh:' .. ARGV[9])
+                        end
+                        if ARGV[10] ~= '' then
+                            redis.call('DEL', 'token:access:' .. ARGV[10])
+                        end
+                        
                         redis.call('SET', KEYS[1], ARGV[1], 'EX', ARGV[2])
                         redis.call('SET', KEYS[2], ARGV[3], 'EX', ARGV[4])
                         redis.call('SET', KEYS[3], ARGV[5], 'EX', ARGV[6])
@@ -117,7 +129,9 @@ public class UserInfoServer {
                 refreshToken, String.valueOf(TimeUnit.DAYS.toSeconds(14)),
                 accessToken, String.valueOf(TimeUnit.HOURS.toSeconds(1)),
                 email, String.valueOf(TimeUnit.DAYS.toSeconds(14)),
-                email, String.valueOf(TimeUnit.HOURS.toSeconds(1)));
+                email, String.valueOf(TimeUnit.HOURS.toSeconds(1)),
+                oldRefreshToken == null ? "" : oldRefreshToken,
+                oldAccessToken == null ? "" : oldAccessToken);
     }
 
     public Map<String, Object> getSalt(String email, String hash) {
@@ -143,58 +157,47 @@ public class UserInfoServer {
     public Map<String, Object> refresh(String refreshToken) {
         Map<String, Object> response = new HashMap<>();
 
-        // 先通过refreshToken查询email
         String email = getEmailByRefreshToken(refreshToken);
-
         if (email == null) {
             response.put("code", 401);
             response.put("message", "刷新令牌无效");
             return response;
         }
 
-        // 使用 Lua 脚本原子性地检查 token、获取过期时间、删除和设置新 token
+        String refreshTokenKey = "user:refresh_token:" + email;
+        String accessTokenKey = "user:access_token:" + email;
+
+        String newAccessToken = generateRefreshToken(36);
+
         String luaScript =
                 """
-                        local emailVal = redis.call('GET', KEYS[1])
-                        if not emailVal then
-                            return {0, '', ''}
-                        end
-                        local ttl = redis.call('TTL', KEYS[1])
-                        local DAY7 = 7 * 24 * 60 * 60
-                        local refreshTokenNew = ''
-                        if ttl < DAY7 then
-                            refreshTokenNew = ARGV[1]
-                            redis.call('SET', KEYS[2], emailVal, 'EX', ARGV[2])
-                            redis.call('DEL', KEYS[1])
-                            -- 删除旧的token映射
-                            redis.call('DEL', KEYS[4])
-                        end
-                        local accessToken = ARGV[3]
-                        local newRefreshToken = refreshTokenNew ~= '' and refreshTokenNew or KEYS[1]
-                        redis.call('SET', KEYS[3], accessToken, 'EX', ARGV[4])
-                        -- 设置新的token映射
-                        if refreshTokenNew ~= '' then
-                            redis.call('SET', KEYS[5], emailVal, 'EX', ARGV[2])
-                        end
-                        redis.call('SET', KEYS[6], emailVal, 'EX', ARGV[4])
-                        return {1, emailVal, refreshTokenNew, accessToken}""";
+                local storedRefreshToken = redis.call('GET', KEYS[1])
+                if not storedRefreshToken or storedRefreshToken ~= ARGV[3] then
+                    return {0, ''}
+                end
+    
+                local oldAccessToken = redis.call('GET', KEYS[2])
+                if oldAccessToken and oldAccessToken ~= '' then
+                    return {1, oldAccessToken}
+                end
+    
+                redis.call('SET', KEYS[2], ARGV[1], 'EX', ARGV[2])
+                redis.call('SET', 'token:access:' .. ARGV[1], ARGV[4], 'EX', ARGV[2])
+    
+                return {1, ARGV[1]}
+                """;
 
-        String refreshTokenNew = generateRefreshToken(48);
-        String accessToken = generateRefreshToken(36);
-
-        String oldRefreshTokenMappingKey = "token:refresh:" + refreshToken;
-        String newRefreshTokenMappingKey = "token:refresh:" + refreshTokenNew;
-        String accessTokenMappingKey = "token:access:" + accessToken;
-
-        @SuppressWarnings("rawtypes")
         DefaultRedisScript<List> redisScript = new DefaultRedisScript<>(luaScript, List.class);
+
         @SuppressWarnings("unchecked")
-        List<Object> result = (List<Object>) redisTemplate.execute(redisScript,
-                Arrays.asList(refreshToken, refreshTokenNew, accessToken, oldRefreshTokenMappingKey, newRefreshTokenMappingKey, accessTokenMappingKey),
-                refreshTokenNew,
-                String.valueOf(TimeUnit.DAYS.toSeconds(14)),
-                accessToken,
-                String.valueOf(TimeUnit.HOURS.toSeconds(1)));
+        List<Object> result = (List<Object>) redisTemplate.execute(
+                redisScript,
+                Arrays.asList(refreshTokenKey, accessTokenKey),
+                newAccessToken,
+                String.valueOf(TimeUnit.HOURS.toSeconds(1)),
+                refreshToken,
+                email
+        );
 
         if (result == null || result.isEmpty() || ((Number) result.get(0)).intValue() == 0) {
             response.put("code", 401);
@@ -202,14 +205,10 @@ public class UserInfoServer {
             return response;
         }
 
-        String returnedRefreshToken = ((Number) result.get(0)).intValue() == 1 && !result.get(2).toString().isEmpty()
-                ? result.get(2).toString()
-                : refreshToken;
-
         response.put("code", 200);
         response.put("message", "刷新成功");
-        response.put("refreshToken", returnedRefreshToken);
-        response.put("accessToken", result.get(3).toString());
+        response.put("refreshToken", refreshToken); // 不轮换
+        response.put("accessToken", result.get(1).toString());
         return response;
     }
 
