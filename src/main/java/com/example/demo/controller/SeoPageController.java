@@ -29,7 +29,7 @@ public class SeoPageController {
         return ResponseEntity.ok(seoPageServer.getSeoPageByUrlPathToSitemapXml(urlPath));
     }
     @PostMapping("/user/seoPageInsert")
-    @Client(name = "seoPageInsert", address = "/seoPageInsert")
+    @Client(name = "seoPageInsert", address = "/user/seoPageInsert")
     public ResponseEntity<Map<String,Object>> insertSeoPage(SeoPage seoPage) {
         int result = seoPageServer.insertSeoPage(seoPage);
         Map<String, Object> resultData = new HashMap<>();
@@ -39,7 +39,7 @@ public class SeoPageController {
         return ResponseEntity.ok(resultData);
     }
     @PostMapping("/user/seoPageUpdate")
-    @Client(name = "seoPageUpdate", address = "/seoPageUpdate")
+    @Client(name = "seoPageUpdate", address = "/user/seoPageUpdate")
     public ResponseEntity<Map<String,Object>> updateSeoPage(SeoPage seoPage) {
         int result = seoPageServer.updateSeoPage(seoPage);
         Map<String, Object> resultData = new HashMap<>();
@@ -49,7 +49,7 @@ public class SeoPageController {
         return ResponseEntity.ok(resultData);
     }
     @PostMapping("/user/selectSeo")
-    @Client(name = "selectSeo", address = "/selectSeo")
+    @Client(name = "selectSeo", address = "/user/selectSeo")
     public ResponseEntity<List<SeoPage>> selectSeoPageByUserEmail(HttpServletRequest request) {
         return ResponseEntity.ok(seoPageServer.selectByUserEmail(request));
     }
