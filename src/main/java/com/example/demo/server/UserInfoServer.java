@@ -166,25 +166,35 @@ public class UserInfoServer {
 
         String refreshTokenKey = "user:refresh_token:" + email;
         String accessTokenKey = "user:access_token:" + email;
+        String oldAccessToken = redisTemplate.opsForValue().get(accessTokenKey);
 
+        String newRefreshToken = generateRefreshToken(48);
         String newAccessToken = generateRefreshToken(36);
 
         String luaScript =
                 """
                 local storedRefreshToken = redis.call('GET', KEYS[1])
-                if not storedRefreshToken or storedRefreshToken ~= ARGV[3] then
-                    return {0, ''}
+                if not storedRefreshToken or storedRefreshToken ~= ARGV[5] then
+                    return {0, '', ''}
                 end
+                local ttl = redis.call('TTL', KEYS[1])
+                local DAY7 = 7 * 24 * 60 * 60
+                local newRefreshToken = ARGV[1]
+                local refreshTokenToReturn = ARGV[5]
+                if ttl < DAY7 then
+                    redis.call('SET', KEYS[1], newRefreshToken, 'EX', ARGV[2])
+       
+                    redis.call('DEL', 'token:refresh:' .. ARGV[5])
     
-                local oldAccessToken = redis.call('GET', KEYS[2])
-                if oldAccessToken and oldAccessToken ~= '' then
-                    return {1, oldAccessToken}
+                    redis.call('SET', 'token:refresh:' .. newRefreshToken, ARGV[6], 'EX', ARGV[2])
+                    refreshTokenToReturn = newRefreshToken
                 end
-    
-                redis.call('SET', KEYS[2], ARGV[1], 'EX', ARGV[2])
-                redis.call('SET', 'token:access:' .. ARGV[1], ARGV[4], 'EX', ARGV[2])
-    
-                return {1, ARGV[1]}
+                redis.call('SET', KEYS[2], ARGV[3], 'EX', ARGV[4])
+                if ARGV[7] ~= '' then
+                    redis.call('DEL', 'token:access:' .. ARGV[7])
+                end
+                redis.call('SET', 'token:access:' .. ARGV[3], ARGV[6], 'EX', ARGV[4])
+                return {1, refreshTokenToReturn, ARGV[3]}
                 """;
 
         DefaultRedisScript<List> redisScript = new DefaultRedisScript<>(luaScript, List.class);
@@ -193,10 +203,13 @@ public class UserInfoServer {
         List<Object> result = (List<Object>) redisTemplate.execute(
                 redisScript,
                 Arrays.asList(refreshTokenKey, accessTokenKey),
+                newRefreshToken,
+                String.valueOf(TimeUnit.DAYS.toSeconds(14)),
                 newAccessToken,
                 String.valueOf(TimeUnit.HOURS.toSeconds(1)),
                 refreshToken,
-                email
+                email,
+                oldAccessToken == null ? "" : oldAccessToken
         );
 
         if (result == null || result.isEmpty() || ((Number) result.get(0)).intValue() == 0) {
@@ -207,8 +220,8 @@ public class UserInfoServer {
 
         response.put("code", 200);
         response.put("message", "刷新成功");
-        response.put("refreshToken", refreshToken); // 不轮换
-        response.put("accessToken", result.get(1).toString());
+        response.put("refreshToken", result.get(1).toString());
+        response.put("accessToken", result.get(2).toString());
         return response;
     }
 

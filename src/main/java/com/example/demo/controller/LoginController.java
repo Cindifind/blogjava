@@ -1,25 +1,15 @@
 package com.example.demo.controller;
 
-import com.example.demo.auth.mapper.UserInfoMapper;
-import com.example.demo.auth.model.UserInfo;
-import com.example.demo.auth.util.Argon2Util;
-import com.example.demo.auth.util.GetSh256;
 import com.example.demo.server.UserInfoServer;
-import kong.unirest.HttpResponse;
-import kong.unirest.Unirest;
 import org.example.text.client.Client;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @RestController
 
