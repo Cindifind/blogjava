@@ -34,6 +34,7 @@ public interface SeoPageMapper {
     @Result(property = "updatedAt", column = "updated_at")
     @Result(property = "lastCrawledAt", column = "last_crawled_at")
     @Result(property = "crawlCount", column = "crawl_count")
+    @Result(property = "userEmail", column = "user_email")
     SeoPage selectSeoPageByUrlPath(String urlPath);
 
     @Update("UPDATE seo_pages SET title = #{title}, description = #{description}, keywords = #{keywords}, " +
@@ -58,6 +59,7 @@ public interface SeoPageMapper {
     @Result(property = "updatedAt", column = "updated_at")
     @Result(property = "lastCrawledAt", column = "last_crawled_at")
     @Result(property = "crawlCount", column = "crawl_count")
+    @Result(property = "userEmail", column = "user_email")
     int updateSeoPage(SeoPage seoPage);
     @Select("SELECT * FROM seo_pages WHERE user_email = #{userEmail}")
     @Result(property = "urlPath", column = "url_path")
@@ -76,6 +78,8 @@ public interface SeoPageMapper {
     @Result(property = "updatedAt", column = "updated_at")
     @Result(property = "lastCrawledAt", column = "last_crawled_at")
     @Result(property = "crawlCount", column = "crawl_count")
+    @Result(property = "userEmail", column = "user_email")
     List<SeoPage> selectSeoPageByUserEmail(String userEmail);
-
+    @Delete("DELETE FROM seo_pages WHERE url_path = #{urlPath} AND user_email = #{userEmail}")
+    int deleteSeoPageByUrlPathAndUserEmail(String urlPath, String userEmail);
 }

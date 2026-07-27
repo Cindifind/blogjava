@@ -6,9 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.example.text.client.Client;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -30,8 +28,8 @@ public class SeoPageController {
     }
     @PostMapping("/user/seoPageInsert")
     @Client(name = "seoPageInsert", address = "/user/seoPageInsert")
-    public ResponseEntity<Map<String,Object>> insertSeoPage(SeoPage seoPage) {
-        int result = seoPageServer.insertSeoPage(seoPage);
+    public ResponseEntity<Map<String,Object>> insertSeoPage(@RequestBody SeoPage seoPage, HttpServletRequest request) {
+        int result = seoPageServer.insertSeoPage(seoPage, request);
         Map<String, Object> resultData = new HashMap<>();
         resultData.put("result", result);
         resultData.put("seoPage", seoPage);
@@ -40,8 +38,8 @@ public class SeoPageController {
     }
     @PostMapping("/user/seoPageUpdate")
     @Client(name = "seoPageUpdate", address = "/user/seoPageUpdate")
-    public ResponseEntity<Map<String,Object>> updateSeoPage(SeoPage seoPage) {
-        int result = seoPageServer.updateSeoPage(seoPage);
+    public ResponseEntity<Map<String,Object>> updateSeoPage(@RequestBody SeoPage seoPage,HttpServletRequest request) {
+        int result = seoPageServer.updateSeoPage(seoPage, request);
         Map<String, Object> resultData = new HashMap<>();
         resultData.put("result", result);
         resultData.put("seoPage", result == 0?"fail":seoPage);
@@ -52,5 +50,14 @@ public class SeoPageController {
     @Client(name = "selectSeo", address = "/user/selectSeo")
     public ResponseEntity<List<SeoPage>> selectSeoPageByUserEmail(HttpServletRequest request) {
         return ResponseEntity.ok(seoPageServer.selectByUserEmail(request));
+    }
+    @GetMapping("/user/seoPageDelete")
+    @Client(name = "seoPageDelete", address = "/user/seoPageDelete")
+    public ResponseEntity<Map<String,Object>> deleteSeoPage(@RequestParam String urlPath, HttpServletRequest request) {
+        int result = seoPageServer.deleteSeoPageByUrlPath(urlPath, request);
+        Map<String, Object> resultData = new HashMap<>();
+        resultData.put("result", result);
+        resultData.put("message", result == 0?"fail":"Delete successful");
+        return ResponseEntity.ok(resultData);
     }
 }
