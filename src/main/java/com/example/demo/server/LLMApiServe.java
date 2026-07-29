@@ -3,6 +3,8 @@ package com.example.demo.server;
 import com.example.demo.util.LLMApiUtil;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+
 @Service
 public class LLMApiServe {
     private final LLMApiUtil llmApiUtil;
@@ -11,5 +13,8 @@ public class LLMApiServe {
     }
     public String getLLMResponse(String prompt) {
         return llmApiUtil.getLLMResponse(prompt);
+    }
+    public File getVoice(String text) {
+        return llmApiUtil.getVoice(text);
     }
 }
