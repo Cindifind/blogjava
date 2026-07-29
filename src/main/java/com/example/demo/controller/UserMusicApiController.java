@@ -1,11 +1,11 @@
 package com.example.demo.controller;
 
 import com.example.demo.auth.mapper.UserInfoMapper;
-import com.example.demo.model.MusicProto;
 import com.example.demo.model.UserMusicList;
 import com.example.demo.music.ModelList;
 import com.example.demo.music.MusicInfo;
 import com.example.demo.music.Search;
+import com.example.demo.protomodel.MusicProto;
 import com.example.demo.server.ApiUrlServer;
 import com.example.demo.server.UserInfoServer;
 import com.example.demo.server.UserMusicServer;

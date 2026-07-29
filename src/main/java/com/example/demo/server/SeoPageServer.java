@@ -11,21 +11,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.beans.PropertyDescriptor;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 @Service
 public class SeoPageServer {
-    @Autowired
-    private SeoPageMapper seoPageMapper;
-    @Autowired
-    private UserInfoServer UserInfoServer;
+    private final SeoPageMapper seoPageMapper;
+    private final UserInfoServer UserInfoServer;
+
+    public SeoPageServer(SeoPageMapper seoPageMapper, UserInfoServer UserInfoServer) {
+        this.seoPageMapper = seoPageMapper;
+        this.UserInfoServer = UserInfoServer;
+    }
+
     public String getSeoPageByUrlPathToFullHtml(String urlPath) {
         SeoPage seoPage = seoPageMapper.selectSeoPageByUrlPath(urlPath);
         if (seoPage != null) {
             Integer crawlCount = seoPage.getCrawlCount();
             seoPage.setCrawlCount(crawlCount + 1);
+            seoPage.setCreatedAt(new Date());
             seoPageMapper.updateSeoPage(seoPage);
             return SeoPageHtmlUtil.generateFullHtml(seoPage);
         }
@@ -34,6 +40,10 @@ public class SeoPageServer {
     public String getSeoPageByUrlPathToSitemapXml(String urlPath) {
         SeoPage seoPage = seoPageMapper.selectSeoPageByUrlPath(urlPath);
         if (seoPage != null) {
+            Integer crawlCount = seoPage.getCrawlCount();
+            seoPage.setCrawlCount(crawlCount + 1);
+            seoPage.setCreatedAt(new Date());
+            seoPageMapper.updateSeoPage(seoPage);
             return SeoPageHtmlUtil.generateSitemapXml(seoPage);
         }
         return null; // Changed from return null; to return null;

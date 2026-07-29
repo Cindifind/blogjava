@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package music;
 
-option java_package = "com.example.demo.model";
+option java_package = "com.example.demo.protomodel";
 option java_outer_classname = "MusicProto";
 
 // 单条音乐信息

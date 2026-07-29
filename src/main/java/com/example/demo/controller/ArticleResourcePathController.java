@@ -38,7 +38,7 @@ public class ArticleResourcePathController {
     private ArticleResourcePathServer articleResourcePathServer;
     @Autowired
     private ImageRecordsMapper imageRecordsMapper;
-    private GetNotFoundResources getNotFoundResources = new GetNotFoundResources();
+    private final GetNotFoundResources getNotFoundResources = new GetNotFoundResources();
     private static final Logger log = LoggerFactory.getLogger(ArticleResourcePathController.class);
     /**
      * 上传文章资源
