@@ -31,7 +31,7 @@ public class SeoPageServer {
         if (seoPage != null) {
             Integer crawlCount = seoPage.getCrawlCount();
             seoPage.setCrawlCount(crawlCount + 1);
-            seoPage.setCreatedAt(new Date());
+            seoPage.setLastCrawledAt(new Date());
             seoPageMapper.updateSeoPage(seoPage);
             return SeoPageHtmlUtil.generateFullHtml(seoPage);
         }
@@ -42,7 +42,7 @@ public class SeoPageServer {
         if (seoPage != null) {
             Integer crawlCount = seoPage.getCrawlCount();
             seoPage.setCrawlCount(crawlCount + 1);
-            seoPage.setCreatedAt(new Date());
+            seoPage.setLastCrawledAt(new Date());
             seoPageMapper.updateSeoPage(seoPage);
             return SeoPageHtmlUtil.generateSitemapXml(seoPage);
         }

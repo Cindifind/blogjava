@@ -1,11 +1,11 @@
 package com.example.demo.controller;
 
-import com.example.demo.auth.mapper.UserInfoMapper;
 import com.example.demo.mapper.ImageRecordsMapper;
 import com.example.demo.model.ArticleResourcePath;
 import com.example.demo.model.ImageRecords;
 import com.example.demo.server.ArticleResourcePathServer;
 import com.example.demo.util.GetNotFoundResources;
+import jakarta.servlet.http.HttpServletRequest;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import org.example.text.client.Client;
@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,6 +39,11 @@ public class ArticleResourcePathController {
     private ArticleResourcePathServer articleResourcePathServer;
     @Autowired
     private ImageRecordsMapper imageRecordsMapper;
+    @Value("${server.cline.server}")
+    private String urlPath;
+
+    @Value("${server.cline.port}")
+    private String portPath;
     private final GetNotFoundResources getNotFoundResources = new GetNotFoundResources();
     private static final Logger log = LoggerFactory.getLogger(ArticleResourcePathController.class);
     /**
@@ -290,7 +296,40 @@ public class ArticleResourcePathController {
             return ResponseEntity.status(400).body(result);
         }
     }
+    @Client(address = "/admin/cleanAll", name = "cleanAll")
+    @GetMapping("/admin/cleanAll")
+    public ResponseEntity<List<Object>> clineAll(HttpServletRequest request) {
+        List<Object> result = new ArrayList<>();
+        String url = "https://" + urlPath + ":" + portPath + "/cline";
+        HttpResponse<String> response = Unirest.get(url)
+                .asString();
+        JSONArray cline = new JSONArray(response.getBody());
+        List<JSONObject> clineList = new ArrayList<>();
+        for (int i = 0; i < cline.length(); i++) {
+            if (cline.getJSONObject(i).getString("infName").equals("clean")) {
+                clineList.add(cline.getJSONObject(i));
+            }
+        }
+        for (JSONObject e : clineList) {
+            String clineUrl = e.getString("address");
+            try {
+                HttpResponse<String> clineResponse = Unirest.get(clineUrl)
+                        .header("Authorization", request.getHeader("Authorization"))
+                        .asString();
+                JSONObject clineData = new JSONObject(clineResponse.getBody());
+                clineData.put("url", clineUrl);
+                result.add(clineData.toMap());
+            }catch (Exception Exc){
+                Map<String, Object> error = new HashMap<>();
+                error.put("code", 500);
+                error.put("message", "文章清理失败: " + Exc.getMessage());
+                error.put("url", clineUrl);
+                result.add(error);
+            }
 
+        }
+        return ResponseEntity.ok(result);
+    }
     @GetMapping("/user/likeArticle")
     public ResponseEntity<Map<String, Object>> likeArticle(@RequestParam long timestamp) {
         Map<String, Object> result = new HashMap<>();
