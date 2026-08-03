@@ -1,9 +1,9 @@
 package com.example.demo.controller;
 
-import com.example.demo.auth.mapper.UserInfoMapper;
 import com.example.demo.mapper.ArticleResourcePathMapper;
 import com.example.demo.model.Comment;
 import com.example.demo.server.CommentService;
+import com.example.demo.server.UserInfoServer;
 import org.example.text.client.Client;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +19,7 @@ public class CommentController {
     @Autowired
     private CommentService commentService;
     @Autowired
-    private UserInfoMapper userInfoMapper;
+    private UserInfoServer userInfoServer;
     @Autowired
     private ArticleResourcePathMapper articleResourcePathMapper;
 
@@ -137,9 +137,9 @@ public class CommentController {
             //获取请求头中的
             //authorization Bearer eb962f1691be288098def8091251c58c8ca12ff342840e0759318250f7f6deb6
             token = token.replace("Bearer ", "");
-            String email = userInfoMapper.getEmailByPassword(token);
+            String email = userInfoServer.getEmailByAccessToken(token);
             Comment comment = commentService.getCommentById(timestamp);
-            if (!email.equals(comment.getEmail())) {
+            if (email!=null&&!email.equals(comment.getEmail())) {
                 result.put("code", 403);
                 result.put("message", "没有权限");
                 return ResponseEntity.status(403).body(result);

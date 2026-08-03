@@ -1,6 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.server.ElysiaVoiceServer;
+import com.example.demo.server.LLMApiServe;
 import org.example.text.client.Client;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ElysiaVoiceController {
     @Autowired
-    private ElysiaVoiceServer elysiaVoiceServer;
+    private LLMApiServe llmApiServe;
     @Client(address = "/user/elysiaVoice", name = "elysiaVoice")
     @PostMapping(value = "/user/elysiaVoice", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<byte[]> elysiaVoice(@RequestBody String text) {
         JSONObject jsonObject = new JSONObject(text);
-        byte[] voiceData = elysiaVoiceServer.getVoice(jsonObject.getString("text"));
+        byte[] voiceData = llmApiServe.getVoice(jsonObject.getString("text"));
         if (voiceData == null) {
             return ResponseEntity.notFound().build();
         }
