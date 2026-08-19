@@ -52,8 +52,8 @@ public class MusicShareGenerator {
         String desc = (String) simpleData.get("desc");
         String image = (String) simpleData.get("image");
 
-//        long ctime = System.currentTimeMillis() / 1000;
-        long ctime = time;
+        long ctime = System.currentTimeMillis() / 1000;
+//        long ctime = time;
 
         // 使用 TreeMap 保证字段顺序一致（虽然签名不再依赖 JSON 顺序，但为了可读性保留）
         Map<String, Object> result = new TreeMap<>();

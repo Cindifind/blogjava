@@ -28,6 +28,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.example.demo.util.MusicShareGenerator.convertToShareData;
+
 @RestController
 @RequestMapping("/api")
 public class MusicController {
@@ -95,8 +97,9 @@ public class MusicController {
     }
     @Client(address = "/api/musicSign",name = "musicSign")
     @PostMapping(value = "/musicSign",consumes = {"application/json", "application/octet-stream"})
-    public ResponseEntity<Map<String, Object>> musicSign(@RequestBody String requestBody) {
-        return ResponseEntity.ok(getMusicSign(new JSONObject(requestBody).toMap()).toMap());
+    public ResponseEntity<Map<String, Object>> musicSign(@RequestBody String requestBody) throws Exception {
+//        return ResponseEntity.ok(getMusicSign(new JSONObject(requestBody).toMap()).toMap());
+        return ResponseEntity.ok(convertToShareData(new JSONObject(requestBody).toMap(),1786888426));
     }
     private JSONObject getMusicSign(Map<String, Object> request) {
         JSONObject data = new JSONObject(request);
