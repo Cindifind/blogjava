@@ -1,13 +1,18 @@
 package com.example.demo.util;
 
+import cn.hutool.core.io.FileUtil;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.File;
+
 public class LLMApiUtil {
-    private static final String API_KEY = "sk-28afefd95e534b459b20197669dbfae2";
+    private static final String API_KEY = "sk-22951817f40040908a354fbbcb3a9a01";
     private static final String API_URL = "https://api.deepseek.com/chat/completions";
+    private static final String VOICE_API_URL = "https://api.siliconflow.cn/v1/audio/speech";
+    private static final String VOICE_API_KEY = "sk-mkgdltfgwnpetbuvrpnszqepevcxpusoghylastsmnrxkqvy";
     private static final String SystemPrompt = """
             [
               {
@@ -76,4 +81,23 @@ public class LLMApiUtil {
         JSONObject message = choice.getJSONObject("message");
         return message.getString("content");
     }
+    public byte [] getVoice(String text) {
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("model", "FunAudioLLM/CosyVoice2-0.5B");
+        requestBody.put("voice", "speech:Elysia:sbdn8crxf9:mststxysjyefjprcoino");
+        requestBody.put("input", text);
+        requestBody.put("response_format", "wav");
+        HttpResponse<byte []> response = Unirest.post(VOICE_API_URL)
+                .header("Authorization", "Bearer " + VOICE_API_KEY)
+                .header("Content-Type", "application/json")
+                .body(requestBody.toString())
+                .asBytes();
+        
+        if (response.getStatus() == 200) {
+            return response.getBody();
+        } else {
+            throw new RuntimeException("Voice API request failed with status: " + response.getStatus() + ", response: " + response.getBody());
+        }
+    }
+
 }
