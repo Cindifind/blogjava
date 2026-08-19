@@ -6,6 +6,8 @@ import com.example.demo.music.Search;
 import com.example.demo.server.ApiUrlServer;
 import com.example.demo.server.UserMusicServer;
 import jakarta.servlet.http.HttpServletRequest;
+import kong.unirest.HttpResponse;
+import kong.unirest.Unirest;
 import org.example.text.client.Client;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -90,6 +92,20 @@ public class MusicController {
         response.put("code", "200");
         apiUrlServer.UpDataaApiState(request);
         return response;
+    }
+    @Client(address = "/api/musicSign",name = "musicSign")
+    @PostMapping(value = "/musicSign",consumes = {"application/json", "application/octet-stream"})
+    public ResponseEntity<Map<String, Object>> musicSign(@RequestBody String requestBody) {
+        return ResponseEntity.ok(getMusicSign(new JSONObject(requestBody).toMap()).toMap());
+    }
+    private JSONObject getMusicSign(Map<String, Object> request) {
+        JSONObject data = new JSONObject(request);
+        data.put("type","qq");
+        HttpResponse<String> response = Unirest.post("https://api.czcn.xyz/api/qqyykp")
+                .header("Content-Type", "application/json")
+                .body(data.toString())
+                .asString();
+        return new JSONObject(response.getBody());
     }
     private List<ModelList>  getUserMusicList(HttpServletRequest request) {
         String token = request.getHeader("Authorization");
