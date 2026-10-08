@@ -60,7 +60,7 @@ public class WebInfoController {
             weather.put("message","获取信息成功");
         }catch (Exception e){
             weather.put("status","500");
-            weather.put("message","发生位置错误");
+            weather.put("message","发生位置错误"+e.getMessage());
         }
         return weather;
     }

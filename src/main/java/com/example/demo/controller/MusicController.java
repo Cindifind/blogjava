@@ -1,34 +1,21 @@
 package com.example.demo.controller;
 
-import com.example.demo.auth.mapper.UserInfoMapper;
-import com.example.demo.music.ModelList;
 import com.example.demo.music.Search;
 import com.example.demo.server.ApiUrlServer;
-import com.example.demo.server.UserMusicServer;
 import jakarta.servlet.http.HttpServletRequest;
-import kong.unirest.HttpResponse;
-import kong.unirest.Unirest;
 import org.example.text.client.Client;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import static com.example.demo.util.MusicShareGenerator.convertToShareData;
 
 @RestController
 @RequestMapping("/api")
@@ -37,21 +24,6 @@ public class MusicController {
     public static String name = "起风了";
     @Autowired
     private ApiUrlServer apiUrlServer;
-    @Autowired
-    private UserInfoMapper userInfoMapper;
-    @Autowired
-    private UserMusicServer userMusicServer;
-    @Client(address = "/api/music",name = "music")
-    @GetMapping("/music")
-    public List<ModelList> music(HttpServletRequest request){
-        //初始时间
-        long startTime = System.currentTimeMillis();
-        apiUrlServer.UpDataaApiState(request);
-        //结束时间
-        long endTime = System.currentTimeMillis();
-        log.info("请求耗时: {}ms", endTime - startTime);
-        return getUserMusicList(request);
-    }
 
     @Client(address = "/api/musicSearch",name = "musicSearch")
     @GetMapping("/musicSearch")
@@ -95,48 +67,13 @@ public class MusicController {
         apiUrlServer.UpDataaApiState(request);
         return response;
     }
-    @Client(address = "/api/musicSign",name = "musicSign")
-    @PostMapping(value = "/musicSign",consumes = {"application/json", "application/octet-stream"})
-    public ResponseEntity<Map<String, Object>> musicSign(@RequestBody String requestBody) throws Exception {
-//        return ResponseEntity.ok(getMusicSign(new JSONObject(requestBody).toMap()).toMap());
-        return ResponseEntity.ok(convertToShareData(new JSONObject(requestBody).toMap(),1786888426));
-    }
-    private JSONObject getMusicSign(Map<String, Object> request) {
-        JSONObject data = new JSONObject(request);
-        data.put("type","qq");
-        HttpResponse<String> response = Unirest.post("https://api.czcn.xyz/api/qqyykp")
-                .header("Content-Type", "application/json")
-                .body(data.toString())
-                .asString();
-        return new JSONObject(response.getBody());
-    }
-    private List<ModelList>  getUserMusicList(HttpServletRequest request) {
-        String token = request.getHeader("Authorization");
-        token = token == null ? request.getHeader("token") : token;
-        if (token == null){
-            JSONObject list = Search.SearchMp3(name, 10, 0);
-            JSONArray jsonArrayList = list.getJSONArray("lists");
-            List<ModelList> musicList = new ArrayList<>();
-            for (int i = 0; i < jsonArrayList.length(); i++) {
-                musicList.add((ModelList) jsonArrayList.get(0));
-            }
-            return musicList;
-        }
-        token = token.replace("Bearer ", "");
-        String email = userInfoMapper.getEmailByPassword(token);
-        JSONObject jsonObject = userMusicServer.selectMusicList(email);
-
-        if (!jsonObject.has("musicList")){
-            JSONObject list = Search.SearchMp3(name, 10, 0);
-            JSONArray jsonArrayList = list.getJSONArray("lists");
-            List<ModelList> musicList = new ArrayList<>();
-            for (int i = 0; i < jsonArrayList.length(); i++) {
-                musicList.add((ModelList) jsonArrayList.get(0));
-            }
-            return musicList;
-        }
-        JSONArray jsonArray = new JSONArray(jsonObject.get("musicList").toString());
-        String listId = String.valueOf(jsonArray.getLong(0));
-        return Search.SearchListInfos(listId);
+    @Client(address = "/api/music", name = "music")
+    @GetMapping("/music")
+    public ResponseEntity<Map<String, Object>> getMusicList(HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("code", 200);
+        response.put("message", "获取歌单成功");
+        response.put("list", Search.SearchListInfos("2897487612"));
+        return ResponseEntity.ok(response);
     }
 }

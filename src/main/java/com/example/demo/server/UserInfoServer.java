@@ -58,7 +58,6 @@ public class UserInfoServer {
                 refreshToken = (String) refreshResponse.get("refreshToken");
                 accessToken = (String) refreshResponse.get("accessToken");
                 // 更新Redis中的token
-                storeTokensInRedis(email, refreshToken, accessToken);
             } else {
                 // refresh失败，重新生成两个token
                 refreshToken = generateRefreshToken(48);
